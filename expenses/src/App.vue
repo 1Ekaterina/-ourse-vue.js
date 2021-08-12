@@ -5,7 +5,12 @@
         <div :class="[$style.title]">My Personal Cost</div>
       </header>
       <div :class="[$style.content]">
-        <payments-display :list="paymentsList"/>
+        Total Value: {{getFPV}}
+        <payments-display :list="currentElements"/>
+        <pagination :cur="curPage" 
+                  :n="n" 
+                  :length="paymentsList.length" 
+                  @paginate="onChangePage"/>
       </div>
       <div :class="[$style.content]">
         <add-payment-form @addNewPayment="addData" />
@@ -15,24 +20,40 @@
 </template>
 
 <script>
+import { mapMutations, mapGetters, mapActions } from 'vuex'
 import AddPaymentForm from './components/AddPaymentForm.vue'
 import PaymentsDisplay from './components/PaymentsDisplay.vue'
+import Pagination from './components/Pagination.vue'
+
 export default {
   name: 'App',
   components: {
     PaymentsDisplay,
-    AddPaymentForm
+    AddPaymentForm,
+    Pagination
   },
   data() {
     return {
-      paymentsList: []
+      category: '',
+      page: '',
+      curPage: 1,
+      n: 5,
     }
   },
-  
   methods: {
+    ...mapMutations({
+      loadData: 'setPaymentListData',
+      addDataToStore: 'addDataToPaymentList'
+    }),
+    ...mapActions({
+      fetchListData: 'fetchData'
+    }),
     addData(newPayment){
-      this.paymentsList.push(newPayment)
+      this.addDataToStore(newPayment)
       console.log(newPayment);
+    },
+    onChangePage(p){
+      this.curPage = p
     },
     fetchData(){
       return [
@@ -54,8 +75,24 @@ export default {
       ]
     }
   },
+  computed: {
+    ...mapGetters({
+      paymentsList:'getPaymentsList'
+    }),
+    getFPV(){
+      return this.$store.getters.getFullPaymentValue
+    },
+    currentElements(){
+      const { n, curPage } = this
+      return this.paymentsList.slice(n * (curPage - 1), n* (curPage - 1)+n)
+    }
+  },
   created(){
-    this.paymentsList = this.fetchData()
+    // this.paymentsList = this.fetchData()
+    //this.$store.commit('setPaymentListData', this.fetchData())
+    //this.loadData(this.fetchData())
+    // this.$store.dispatch('fetchData')
+    this.fetchListData()
   }
 }
 </script>
@@ -76,6 +113,7 @@ export default {
 }
 .title{
   font-size: 20px;
+  color: red
 }
 .content {
   padding-top: 30px;
