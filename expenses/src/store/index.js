@@ -9,18 +9,27 @@ export default new Vuex.Store({
         categories: []
     },
     mutations: {
-        setPaymentListData(state, payload) {
+        setPaymentsListData(state, payload) {
             // Реактивность 
             //state.paymentsList[0] = payload
             //state.paymentsList = [...state.paymentsList]
             //Vue.set(state.paymentsList,0, payload)
-            state.paymentsList = payload
+            state.paymentsList = payload;
         },
         addDataToPaymentList(state, payload) {
             state.paymentsList.push(payload)
         },
         setCategoriesListData(state, payload) {
-            state.categories = payload
+            state.categories = [...state.categories, ...payload]
+        },
+        deleteItemFromPaymentsList(state, payload) {
+            state.paymentsList = state.paymentsList.filter(item => item.id !== payload)
+        },
+        updateDataToPaymentsList(state, payload) {
+            const item = state.paymentsList.find(item => item.id === payload.id)
+            if (item) {
+                Object.assign(item, payload)
+            }
         }
     },
     getters: {
@@ -31,22 +40,34 @@ export default new Vuex.Store({
         getCategories: state => state.categories
     },
     actions: {
-        fetchData({commit}) {
-            if(this.state.paymentsList.length) return 
-            return new Promise((resolve)=>{
-                setTimeout(()=>{
+         fetchData({commit}) {
+            return new Promise(res => {
+                setTimeout(() => {
                     const items = []
-                    for (let i = 0; i < 20; i++) {
-                        items.push({
-                            date: "12.08.2021",
-                            category: "Internet",
-                            value: i+101
+                    let obj = {
+                        "page1": [
+                            {"id": 1, "date": "20.03.2020", "category": "Food", "value": 169},
+                            {"id": 2, "date": "21.03.2020", "category": "Navigation", "value": 50},
+                            {"id": 3, "date": "22.03.2020", "category": "Sport", "value": 450}
+                        ],
+                        "page2": [
+                            {"id": 4, "date": "23.03.2020", "category": "Entertaiment", "value": 969},
+                            {"id": 5, "date": "24.03.2020", "category": "Education", "value": 1500},
+                            {"id": 6, "date": "25.03.2020", "category": "Food", "value": 200}
+                        ],
+                    }
+                    for (let objKey in obj) {
+                        obj[objKey].forEach((item) => {
+                            items.push(item)
                         })
                     }
-                    resolve(items)
-                },2000)
+                    res(items);
+                }, 100);
             })
-            .then(res=> commit('setPaymentListData', res))
+                .then(res => {
+                    commit("setPaymentsListData", res);
+                })
+                .catch("error");
         },
         fetchCategoryList({commit}) {
             return new Promise((resolve)=>{
@@ -57,6 +78,9 @@ export default new Vuex.Store({
                 },2000)
             })
             .then(res=> commit('setCategoriesListData', res))
+        },
+        addData({commit}, payload){
+            console.log(commit, payload)
         }
     },
 })

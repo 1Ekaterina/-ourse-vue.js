@@ -8,11 +8,16 @@
     <div class="content">
     <router-view />
     </div>
+    <transition name="fade">
+      <context-menu/>
+    </transition>
   </div>
 </template>
 
 <script>
+import ContextMenu from './components/ContextMenu.vue'
 export default {
+  components: { ContextMenu, },
   name: 'App',
   data() {
     return {
